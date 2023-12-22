@@ -54,12 +54,12 @@ WSGI_APPLICATION = 'notification.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ['DBNAME'],
         'USER': os.environ['DBUSER'],
         'PASSWORD': os.environ['DBPASS'],
-        'HOST': os.environ['DBHOST'],
         'PORT': os.environ['DBPORT'],
+        'HOST': os.environ['DBHOST']
     }
 }
 
