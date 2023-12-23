@@ -10,11 +10,17 @@ from django.views.decorators.csrf import csrf_exempt
 @require_POST
 def signup(req):
     data = json.loads(req.body)
-    user = User(
-        name = data['name'],
-        email = data['email'],
-        tel = data['tel']
-    )
-    user.save()
+    try:
+        user = User(
+            name = data['name'],
+            password = data['pass'],
+            email = data['email'],
+            tel = data['tel']
+        )
+        user.save()
+        return JsonResponse({'message': f"User {data['name']} created!"})
     
-    return JsonResponse({'message': f"User {data['name']} created!"}, status_code=201)
+    except Exception as e:
+        return JsonResponse({'message': 'Internal server error', 'Error': f'{e}'})
+        
+        
