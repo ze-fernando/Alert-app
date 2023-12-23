@@ -54,12 +54,8 @@ WSGI_APPLICATION = 'notification.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ['DBNAME'],
-        'USER': os.environ['DBUSER'],
-        'PASSWORD': os.environ['DBPASS'],
-        'PORT': os.environ['DBPORT'],
-        'HOST': os.environ['DBHOST']
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / os.environ['DB'],
     }
 }
 
