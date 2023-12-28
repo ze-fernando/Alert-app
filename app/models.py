@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
+
 
 class User(models.Model):
     name = models.CharField(max_length=255)
@@ -10,6 +12,7 @@ class User(models.Model):
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
+    
 
 
 class Task(models.Model):
