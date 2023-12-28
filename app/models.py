@@ -1,6 +1,5 @@
 from django.db import models
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class User(models.Model):
@@ -13,8 +12,15 @@ class User(models.Model):
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
     
+    def auth(name, passw):
+        try:            
+            user = User.objects.get(name=name)
+            passwd = check_password(passw, user.password)
+            return user if passwd else None
+        except:
+            return None
 
-
+        
 class Task(models.Model):
     task = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now=True)

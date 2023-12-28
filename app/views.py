@@ -1,37 +1,44 @@
-import json
-from .models import *
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .jwt_handler import JwtToken
+from .models import *
+import json
 
 @csrf_exempt
-@require_POST
 def signup(req):
-    data = json.loads(req.body)
-    usr = User.objects.filter(name=data['name']).exists()
-    if usr:
-        return JsonResponse({'message': f'User {data['name']} aleredy exists'}, status=422)
-    try:
-        user = User(
-            name = data['name'],
-            password = data['password'],
-            email = data['email'],
-            tel = data['tel']
-        )
-        user.save()
-        return JsonResponse({'message': f"User {data['name']} created!"}, status=201)
-    
-    except Exception as e:
-        return JsonResponse({'message': 'Internal server error', 'Error': f'{e}'}, status=500)
+    if req.method == 'POST':
+        data = json.loads(req.body)
+        usr = User.objects.filter(name=data['name']).exists()
+        if usr:
+            return JsonResponse({'message': f'User {data['name']} aleredy exists'}, status=422)
+        try:
+            user = User(
+                name = data['name'],
+                password = data['password'],
+                email = data['email'],
+                tel = data['tel']
+            )
+            user.save()
+            return JsonResponse({'message': f"User {data['name']} created!"}, status=201)
         
+        except Exception as e:
+            return JsonResponse({'message': 'Internal server error', 'Error': f'{e}'}, status=500)
+    else:
+        return JsonResponse({'Error': f'Method {req.method} not allowed'}, status=405)
+
+
 
 @csrf_exempt
-@require_POST
 def signin(req):
-    data = json.loads(req.body)
-    usr = User.objects.get(name=data['name'])
-    passw = check_password(data['password'], usr.password)
-    if passw:
-        return JsonResponse({'msg': 'true'}, status=200)
+    if req.method == 'POST':
+        data = json.loads(req.body)
+        user = User.auth(data['name'], data['password'])
+        if user is not None:
+            token = JwtToken.generate(user.id, user.name)
+            return JsonResponse({'token': f'{token}'}, status=200)
+        else:
+            return JsonResponse({'message': 'name or nassword invalid'}, status=401)
     else:
-        return JsonResponse({'msg': 'false'}, status=401)
+        return JsonResponse({'Error': f'Method {req.method} not allowed'}, status=405)
+
+
