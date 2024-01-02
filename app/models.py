@@ -14,9 +14,9 @@ class User(models.Model):
     
     def auth(name, passw):
         try:            
-            user = User.objects.get(name=name)
-            passwd = check_password(passw, user.password)
-            return user if passwd else None
+            return User.objects.get(name=name) \
+                if check_password(passw, User.objects.get(name=name).password)\
+                    else None
         except:
             return None
 

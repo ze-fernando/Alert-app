@@ -42,3 +42,6 @@ def signin(req):
         return JsonResponse({'Error': f'Method {req.method} not allowed'}, status=405)
 
 
+@csrf_exempt
+def task(req):
+    pass
