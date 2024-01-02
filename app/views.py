@@ -25,7 +25,7 @@ def signup(req):
         except Exception as e:
             return JsonResponse({'message': 'Internal server error', 'Error': f'{e}'}, status=500)
     else:
-        return JsonResponse({'Error': f'Method {req.method} not allowed'}, status=405)
+        return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
 
 
@@ -33,16 +33,34 @@ def signup(req):
 def signin(req):
     if req.method == 'POST':
         data = json.loads(req.body)
-        user = auth.authenticate_user(data['name'], data['password'])
+        user = auth.authenticate(data['name'], data['password'])
         if user is not None:
             token = JwtToken.generate(user.id, user.name)
             return JsonResponse({'token': f'{token}'}, status=200)
         else:
             return JsonResponse({'message': 'name or nassword invalid'}, status=401)
     else:
-        return JsonResponse({'Error': f'Method {req.method} not allowed'}, status=405)
+        return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
 
 @csrf_exempt
 def task(req):
-    pass
+    if req.method == 'POST':
+        try:
+            token = req.headers.get('Authorization', '').split(' ')[1]
+            if JwtToken.verify_jwt(token):
+                data = json.loads(req.body)
+                task = Task(
+                task = data['task'],
+                hourSend = data['hour'],
+                sendFor = data['sendTo'],
+                user = User.objects.get(id=data['user'])
+                )
+                print(task.created)
+                task.save()
+                return JsonResponse({'message': 'Task created!'})
+
+        except Exception:
+            return JsonResponse({'error': 'token invalid'}, status=401)
+    else:
+        return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)

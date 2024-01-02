@@ -3,7 +3,7 @@ from .models import User
 
 class AuthenticationService:
     @staticmethod
-    def authenticate_user(name, password):
+    def authenticate(name, password):
         try:
             user = User.objects.get(name=name)
             if check_password(password, user.password):

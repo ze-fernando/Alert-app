@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from .models import User
 import jwt
 import os
 
@@ -17,3 +18,13 @@ class JwtToken:
         }
         token = jwt.encode(payload, JwtToken.SECRET_KEY, algorithm='HS256')
         return token
+    
+    def verify_jwt(token):
+        try:
+            payload = jwt.decode(token, JwtToken.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            return User.objects.get(id=user_id)
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.InvalidTokenError:
+            return None
