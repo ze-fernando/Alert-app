@@ -1,4 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
+from .service import AuthenticationService as auth
 from django.http import JsonResponse
 from .jwt_handler import JwtToken
 from .models import *
@@ -32,7 +33,7 @@ def signup(req):
 def signin(req):
     if req.method == 'POST':
         data = json.loads(req.body)
-        user = User.auth(data['name'], data['password'])
+        user = auth.authenticate_user(data['name'], data['password'])
         if user is not None:
             token = JwtToken.generate(user.id, user.name)
             return JsonResponse({'token': f'{token}'}, status=200)
