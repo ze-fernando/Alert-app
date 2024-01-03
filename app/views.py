@@ -1,6 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
-from .service import AuthenticationService as auth
+from .service import Authentication, SendMessage
 from django.http import JsonResponse
+from datetime import datetime
 from .jwt_handler import JwtToken
 from .models import *
 import json
@@ -28,12 +29,11 @@ def signup(req):
         return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
 
-
 @csrf_exempt
 def signin(req):
     if req.method == 'POST':
         data = json.loads(req.body)
-        user = auth.authenticate(data['name'], data['password'])
+        user = Authentication.authenticate(data['name'], data['password'])
         if user is not None:
             token = JwtToken.generate(user.id, user.name)
             return JsonResponse({'token': f'{token}'}, status=200)
@@ -41,7 +41,6 @@ def signin(req):
             return JsonResponse({'message': 'name or nassword invalid'}, status=401)
     else:
         return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
-
 
 @csrf_exempt
 def task(req):
@@ -51,16 +50,28 @@ def task(req):
             if JwtToken.verify_jwt(token):
                 data = json.loads(req.body)
                 task = Task(
-                task = data['task'],
-                hourSend = data['hour'],
-                sendFor = data['sendTo'],
-                user = User.objects.get(id=data['user'])
+                    task = data['task'],
+                    hourSend = data['hour'],
+                    sendFor = data['sendTo'],
+                    user = User.objects.get(id=data['user'])
                 )
-                print(task.created)
                 task.save()
                 return JsonResponse({'message': 'Task created!'})
 
         except Exception:
+
             return JsonResponse({'error': 'token invalid'}, status=401)
     else:
         return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
+
+
+
+            
+def sendTask(task):
+    hour_task = datetime.strptime(task.hourSend, '%H:%M').time().replace(second=0, microsecond=0)
+    now = datetime.now().time().replace(second=0, microsecond=0)
+    if hour_task == now:
+        if task.sendFor == 'email':
+            SendMessage.send_email(task)
+        elif task.sendFor == 'phone':
+            SendMessage.send_wpp(task)

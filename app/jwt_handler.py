@@ -14,7 +14,7 @@ class JwtToken:
         payload = {
             'user_id': id,
             'username': username,
-            'exp': datetime.utcnow() + timedelta(hours=1)
+            'exp': datetime.utcnow() + timedelta(days=1)
         }
         token = jwt.encode(payload, JwtToken.SECRET_KEY, algorithm='HS256')
         return token
