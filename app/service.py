@@ -1,5 +1,6 @@
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail
+from twilio.rest import Client
 from dotenv import load_dotenv
 from .models import User
 import os
@@ -33,4 +34,14 @@ class SendMessage:
     
     @staticmethod
     def send_wpp(task):
-        pass
+        account_sid = os.environ['SID']
+        auth_token = os.environ['AUTH_TOKEN']
+        client = Client(account_sid, auth_token)
+
+        message = client.messages.create(
+            from_ = SendMessage.NUMBER,
+            body = f"your task {task.task} is now",
+            to = task.tel
+        )
+
+        print(message.sid)
