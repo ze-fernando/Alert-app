@@ -42,13 +42,18 @@ def signin(req):
     else:
         return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
+
 @csrf_exempt
-def task(req):
+def create_task(req):
     if req.method == 'POST':
         try:
             token = req.headers.get('Authorization', '').split(' ')[1]
             if JwtToken.verify_jwt(token):
                 data = json.loads(req.body)
+                all_tasks = Task.objects.filter(user = data['user'])
+                if len(all_tasks) >= 3:
+                    return JsonResponse({'message': "you just have 3 task's in your profile"}, status=400)
+
                 task = Task(
                     task = data['task'],
                     hourSend = data['hour'],
@@ -57,16 +62,55 @@ def task(req):
                 )
                 task.save()
                 return JsonResponse({'message': 'Task created!'})
+            else:
+                 return JsonResponse({'error': 'token invalid'}, status=401)
+        except Exception as e:
+            return JsonResponse({'error': e}, status=401)      
+    else:
+        return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
-        except Exception:
-
-            return JsonResponse({'error': 'token invalid'}, status=401)
+        
+@csrf_exempt
+def del_task(req, id):
+    if req.method == 'DELETE':
+        try:
+            token = req.headers.get('Authorization', '').split(' ')[1]
+            if JwtToken.verify_jwt(token):
+                task = Task.objects.get(id = id)
+                task.delete()
+                return JsonResponse({'message': 'Task deleted!'})
+            else:
+                 return JsonResponse({'error': 'token invalid'}, status=401)
+        except Exception as e:
+            return JsonResponse({'error': e}, status=401)      
     else:
         return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
 
+@csrf_exempt
+def put_task(req, id):
+    if req.method == 'PUT':
+        try:
+            token = req.headers.get('Authorization', '').split(' ')[1]
+            if JwtToken.verify_jwt(token):
+                data = json.loads(req.body)
+                
+                task = Task.objects.get(id = id)
+                
+                task.task = data['task']
+                task.hourSend = data['hour']
+                task.sendFor = data['sendTo']
+                
+                task.save()
+                return JsonResponse({'message': 'Task updated!'})
+            else:
+                 return JsonResponse({'error': 'token invalid'}, status=401)
+        except Exception as e:
+            return JsonResponse({'error': e}, status=401)      
+    else:
+        return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
-            
+
 def sendTask(task):
     hour_task = datetime.strptime(task.hourSend, '%H:%M').time().replace(second=0, microsecond=0)
     now = datetime.now().time().replace(second=0, microsecond=0)
