@@ -4,7 +4,6 @@ from .models import User
 import jwt
 import os
 
-
 load_dotenv()
 
 class JwtToken:
@@ -24,7 +23,5 @@ class JwtToken:
             payload = jwt.decode(token, JwtToken.SECRET_KEY, algorithms=['HS256'])
             user_id = payload['user_id']
             return User.objects.get(id=user_id)
-        except jwt.ExpiredSignatureError:
-            return None
-        except jwt.InvalidTokenError:
+        except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
             return None
