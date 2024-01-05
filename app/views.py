@@ -1,4 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
 from django.http import JsonResponse
 from .jwt_handler import JwtToken
 from datetime import datetime
@@ -42,6 +43,34 @@ def signin(req):
     
     return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
+
+@csrf_exempt
+def tasks(req, id):
+    if req.method == 'GET':
+        try:
+            token = req.headers.get('Authorization', '').split(' ')[1]
+            if JwtToken.verify_jwt(token):
+                user = User.objects.get(id=id)
+                all_tasks = Task.objects.filter(user = user)
+                tasks_list = []
+                for task in all_tasks:
+                    task_dict = {
+                        'id': task.pk,
+                        'task': str(task.task),
+                        'created': task.created.isoformat(),
+                        'hourSend': task.hourSend.strftime('%H:%M:%S'),
+                        'user': task.user.name
+                    }
+                    tasks_list.append(task_dict)
+                
+                return JsonResponse(tasks_list, safe=False, status=200)
+            
+            return JsonResponse({'error': 'token invalid'}, status=401)
+        
+        except Exception as e:
+            return JsonResponse({'error': e}, status=401)      
+    
+    return JsonResponse({'error': f'Method {req.method} not allowed'}, status=405)
 
 @csrf_exempt
 def create_task(req):
